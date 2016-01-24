@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Einstellungen</string>
+    <string name="coming_up_next">Nächste Songs</string>
+    <string name="wished_by">Gewünscht von %1$s</string>
+    <string name="now_playing">Aktueller Song</string>
+    <string name="your_wishes">Deine Wünsche</string>
+    <string name="already_in_list">Diesen Song hast du bereits zu deiner Liste hinzugefügt.</string>
+    <string name="failed_to_sync_favs">Bei der Synchronisierung deiner Favoriten ist ein Fehler aufgetreten. Die letzte Änderung wurde eventuell nicht richtig übernommen.</string>
+    <string name="from_favs_of">Ausgewählt aus den Favoriten von %1$s</string>
+</resources>

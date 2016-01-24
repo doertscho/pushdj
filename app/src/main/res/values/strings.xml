@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name" translatable="false">Partyfy</string>
+    <string name="app_name_central" translatable="false">Partyfy Central</string>
+    <string name="app_name_crowd" translatable="false">Partyfy Crowd</string>
+    <string name="action_settings">Settings</string>
+    <string name="coming_up_next">Coming up next</string>
+    <string name="wished_by">Requested by %1$s</string>
+    <string name="now_playing">Now playing</string>
+    <string name="your_wishes">Your requests</string>
+    <string name="already_in_list">You already added this song to your list!</string>
+    <string name="failed_to_sync_favs">An error occurred while synchronizing your favourites. The last change may not have been stored as requested.</string>
+    <string name="from_favs_of">Selected from the favourites of %1$s</string>
+</resources>

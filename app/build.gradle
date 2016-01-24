@@ -1,0 +1,60 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "com.fzoid.partyfy"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        debug {
+            debuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    productFlavors {
+        central {
+            applicationId "com.fzoid.partyfy.central"
+        }
+        crowd {
+            applicationId "com.fzoid.partyfy.crowd"
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    // This library handles authentication and authorization
+    compile 'com.spotify.sdk:spotify-auth:1.0.0-beta12@aar'
+
+    // This library handles music playback
+    compile 'com.spotify.sdk:spotify-player:1.0.0-beta12@aar'
+
+    // The Web API wrapper
+    compile 'com.squareup.retrofit:retrofit:1.9.0'
+    compile 'com.github.kaaes:spotify-web-api-android:0.2.0@aar'
+
+    // the rest
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.google.code.gson:gson:2.4'
+    compile 'commons-io:commons-io:2.4'
+}
