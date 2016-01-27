@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -49,7 +49,7 @@ public class CrowdActivity extends AppCompatActivity implements
         ConnectionStateCallback, SongSearchDialog.SongSearchCallback {
 
     private static final String CLIENT_ID = "a53dd0dbe9c74340be7a6ebc40ed14af";
-    private static final String REDIRECT_URI = "partyfy-crowd://callback";
+    private static final String REDIRECT_URI = "partify-crowd://callback";
 
     private TextView titleView, artistView, wisherView;
 
@@ -185,7 +185,7 @@ public class CrowdActivity extends AppCompatActivity implements
         });
     }
 
-    private static final String PARTYFY_FAVOURITES = "Partyfy Favourites";
+    private static final String PARTYFY_FAVOURITES = "Partify Favourites";
 
     private void findFavouritesPlaylist() {
         final int LIMIT = 20;

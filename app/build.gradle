@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.fzoid.partyfy"
+        applicationId "com.fzoid.pushdj"
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
@@ -23,11 +23,11 @@ android {
 
     productFlavors {
         central {
-            applicationId "com.fzoid.partyfy.central"
+            applicationId "com.fzoid.pushdj.central"
         }
-        crowd {
-            applicationId "com.fzoid.partyfy.crowd"
-        }
+        /*crowd {
+            applicationId "com.fzoid.pushdj.crowd"
+        }*/
     }
 }
 

@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,8 +13,6 @@ import android.util.SparseArray;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,7 +24,6 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,8 +49,8 @@ public class Comm {
     }
 
     static final int PORT = 24105;
-    static final String BROADCAST_ACTION = "com.fzoid.partyfy.BROADCAST";
-    static final String DATA = "com.fzoid.partyfy.DATA";
+    static final String BROADCAST_ACTION = "com.fzoid.partify.BROADCAST";
+    static final String DATA = "com.fzoid.partify.DATA";
 
     public static Context ctx;
     public static MainApplication app;
@@ -256,7 +253,7 @@ public class Comm {
                         Log.d("TcpWorker", "Sending OPTIONS response.");
                         out.println(
                             "HTTP/1.1 200 OK\n" +
-                            "Server: Partyfy Central / v0.1\n" +
+                            "Server: Partify Central / v0.1\n" +
                             "Allow: POST, OPTIONS\n" +
                             "Access-Control-Allow-Headers: Content-Type\n" +
                             "Access-Control-Allow-Origin: http://www.doertsch.net"
@@ -283,7 +280,7 @@ public class Comm {
                         if (printHttpHeaders) {
                             out.println(
                                 "HTTP/1.1 200 OK\n" +
-                                "Server: Partyfy Central / v0.1\n" +
+                                "Server: Partify Central / v0.1\n" +
                                 "Access-Control-Allow-Origin: http://www.doertsch.net\n" +
                                 "Content-Type: application/json; charset=utf-8\n" +
                                 "Content-Length: " + (respData.getBytes("UTF-8").length + 1) + "\n\n"

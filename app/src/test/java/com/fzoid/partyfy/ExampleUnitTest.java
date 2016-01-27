@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import org.junit.Test;
 

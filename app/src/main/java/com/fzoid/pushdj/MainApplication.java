@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.app.Application;
 import android.content.BroadcastReceiver;
@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class MainApplication extends Application implements
         PlayerNotificationCallback, ConnectionStateCallback {
 
     public boolean needsInitialization = true;
 
+    public String country = "HINTERBIKI";
     public Player player;
     public boolean paused = false;
     public Wish currentSong;
@@ -42,7 +42,7 @@ public class MainApplication extends Application implements
     public List<Wish> upNext = new ArrayList<>();
     public List<String> lastWishesUsers = new ArrayList<>();
 
-    private static final String TAG = "com.fzoid.partyfy.MainApplication";
+    private static final String TAG = "com.fzoid.partify.MainApplication";
     private PowerManager.WakeLock wakeLock = null;
     private WifiManager.WifiLock wifiLock = null;
 
@@ -146,10 +146,10 @@ public class MainApplication extends Application implements
         }
     };
 
-    public static final String UPDATE_LIST = "com.fzoid.partyfy.UPDATE_LIST";
-    public static final String UPDATE_SONG = "com.fzoid.partyfy.UPDATE_SONG";
-    public static final String PAUSE = "com.fzoid.partyfy.PAUSE";
-    public static final String PLAY = "com.fzoid.partyfy.PLAY";
+    public static final String UPDATE_LIST = "com.fzoid.partify.UPDATE_LIST";
+    public static final String UPDATE_SONG = "com.fzoid.partify.UPDATE_SONG";
+    public static final String PAUSE = "com.fzoid.partify.PAUSE";
+    public static final String PLAY = "com.fzoid.partify.PLAY";
 
     public void nextTrack() {
 

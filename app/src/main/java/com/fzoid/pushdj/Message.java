@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class Message {
     static Message nowPlaying(Wish song) {
         Message msg = new Message();
         msg.kind = "now-playing";
-        msg.sender = "Partyfy Central";
+        msg.sender = "Partify Central";
         msg.nowPlaying = song;
         return msg;
     }

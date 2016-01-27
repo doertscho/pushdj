@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -29,10 +29,7 @@ import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
-import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
-import com.spotify.sdk.android.player.PlayerNotificationCallback;
-import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
 
 import java.io.IOException;
@@ -46,6 +43,7 @@ import java.util.List;
 
 import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -53,7 +51,7 @@ import retrofit.client.Response;
 public class MainActivity extends AppCompatActivity implements SongSearchDialog.SongSearchCallback {
 
     private static final String CLIENT_ID = "f6bca518db1a49c18b275380d1551659";
-    private static final String REDIRECT_URI = "partyfy-central://callback";
+    private static final String REDIRECT_URI = "pushdj-central://callback";
 
     private TextView titleView, artistView, wisherView;
     private ImageButton playPauseButton, skipButton;
@@ -176,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
                         app().player.addPlayerNotificationCallback(app());
                         initializeButtons();
                         initializeSeekBar();
+                        initializeUser();
 
                         app().nextTrack();
                     }
@@ -263,6 +262,20 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         });
     }
 
+    public void initializeUser() {
+        Comm.spotify.getMe(new Callback<UserPrivate>() {
+            @Override
+            public void success(UserPrivate userPrivate, Response response) {
+                app().country = userPrivate.country;
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+            }
+        });
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -326,14 +339,14 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
     @Override
     public void songSelected(Track song) {
 
-        Wish newWish = new Wish("Partyfy Central", song.uri, song.artists, song.name);
+        Wish newWish = new Wish("Partify Central", song.uri, song.artists, song.name);
 
-        List<Wish> centralWishes = app().wishes.get("Partyfy Central");
+        List<Wish> centralWishes = app().wishes.get("Partify Central");
         if (centralWishes == null) centralWishes = new ArrayList<>();
         if (!centralWishes.contains(newWish)) {
             centralWishes.add(newWish);
             Collections.sort(centralWishes);
-            app().wishes.put("Partyfy Central", centralWishes);
+            app().wishes.put("Partify Central", centralWishes);
             app().updateNext();
             ssd.dismiss();
         } else {

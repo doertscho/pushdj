@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.app.Activity;
 import android.app.DialogFragment;
@@ -59,7 +59,10 @@ public class SongSearchDialog extends DialogFragment {
         rv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                callback.songSelected(results.get(position));
+                Track track = results.get(position);
+                if (track.album.available_markets.contains(app().country)) {
+                    callback.songSelected(results.get(position));
+                }
             }
         });
 
@@ -104,6 +107,10 @@ public class SongSearchDialog extends DialogFragment {
         return v;
     }
 
+    public MainApplication app() {
+        return (MainApplication) ctx.getApplicationContext();
+    }
+
     class ResultsAdapter extends BaseAdapter {
 
         @Override
@@ -135,9 +142,17 @@ public class SongSearchDialog extends DialogFragment {
             }
             ((TextView) vi.findViewById(R.id.title)).setText(t.name);
             ((TextView) vi.findViewById(R.id.artist)).setText(artistNames);
-            vi.findViewById(R.id.wisher).setVisibility(View.GONE);
             vi.findViewById(R.id.fav_button).setVisibility(View.GONE);
             vi.findViewById(R.id.remove_button).setVisibility(View.GONE);
+
+            if (t.album.available_markets.contains(app().country)) {
+                vi.findViewById(R.id.wisher).setVisibility(View.GONE);
+            } else {
+                TextView extra = (TextView) vi.findViewById(R.id.wisher);
+                extra.setVisibility(View.VISIBLE);
+                extra.setText(R.string.licence_not_available);
+                extra.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            }
 
             return vi;
         }

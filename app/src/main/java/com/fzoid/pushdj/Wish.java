@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.support.annotation.NonNull;
 
@@ -9,10 +9,10 @@ import kaaes.spotify.webapi.android.models.ArtistSimple;
 public class Wish implements Comparable<Wish> {
 
     public static Wish THE_LAZY_SONG =
-            new Wish("Partyfy Central", "spotify:track:386RUes7n1uM1yfzgeUuwp",
+            new Wish("Partify Central", "spotify:track:386RUes7n1uM1yfzgeUuwp",
                 "Bruno Mars", "The Lazy Song");
     public static Wish PULSE = new Wish(
-            "Partyfy Central", "spotify:track:2EFr3U8KSpaw00v6J93tG1", "Ihsahn", "Pulse");
+            "Partify Central", "spotify:track:2EFr3U8KSpaw00v6J93tG1", "Ihsahn", "Pulse");
 
     public String wisher;
     public String trackUri;

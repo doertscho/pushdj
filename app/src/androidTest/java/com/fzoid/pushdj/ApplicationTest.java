@@ -1,4 +1,4 @@
-package com.fzoid.partyfy;
+package com.fzoid.pushdj;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

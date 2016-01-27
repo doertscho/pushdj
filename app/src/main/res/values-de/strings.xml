@@ -8,4 +8,5 @@
     <string name="already_in_list">Diesen Song hast du bereits zu deiner Liste hinzugefügt.</string>
     <string name="failed_to_sync_favs">Bei der Synchronisierung deiner Favoriten ist ein Fehler aufgetreten. Die letzte Änderung wurde eventuell nicht richtig übernommen.</string>
     <string name="from_favs_of">Ausgewählt aus den Favoriten von %1$s</string>
+    <string name="licence_not_available">Aus Lizenzgründen in deinem Land nicht verfügbar.</string>
 </resources>
