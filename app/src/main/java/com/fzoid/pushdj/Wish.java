@@ -8,11 +8,8 @@ import kaaes.spotify.webapi.android.models.ArtistSimple;
 
 public class Wish implements Comparable<Wish> {
 
-    public static Wish THE_LAZY_SONG =
-            new Wish("Partify Central", "spotify:track:386RUes7n1uM1yfzgeUuwp",
-                "Bruno Mars", "The Lazy Song");
-    public static Wish PULSE = new Wish(
-            "Partify Central", "spotify:track:2EFr3U8KSpaw00v6J93tG1", "Ihsahn", "Pulse");
+    public static Wish THE_LAZY_SONG = new Wish(
+            "niemandem", "spotify:track:386RUes7n1uM1yfzgeUuwp", "Bruno Mars", "The Lazy Song");
 
     public String wisher;
     public String trackUri;

@@ -4,9 +4,6 @@ import java.util.List;
 
 public class Message {
 
-    public static int NEXT_ID = 1;
-    public int id = 0;
-
     public String kind = "";
     public String sender = "";
     public String recipient = "";
@@ -14,11 +11,6 @@ public class Message {
     public List<Wish> wishList;
     public List<Wish> played;
     public Wish nowPlaying;
-
-    public Message() {
-        id = NEXT_ID;
-        NEXT_ID++;
-    }
 
     static Message nowPlaying(Wish song) {
         Message msg = new Message();
@@ -47,12 +39,6 @@ public class Message {
         msg.kind = "wish-list";
         msg.sender = userName;
         msg.wishList = wishes;
-        return msg;
-    }
-
-    static Message needWishes() {
-        Message msg = new Message();
-        msg.kind = "need-wishes";
         return msg;
     }
 }

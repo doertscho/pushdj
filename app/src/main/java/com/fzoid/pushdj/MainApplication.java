@@ -1,10 +1,8 @@
 package com.fzoid.pushdj;
 
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -17,6 +15,7 @@ import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +27,8 @@ public class MainApplication extends Application implements
 
     public boolean needsInitialization = true;
 
-    public String country = "HINTERBIKI";
+    public String market = "HINTERBIKI";
+    public String accessCode = "";
     public Player player;
     public boolean paused = false;
     public Wish currentSong;
@@ -58,11 +58,7 @@ public class MainApplication extends Application implements
         wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, TAG);
         wifiLock.acquire();
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                messageReceiver, new IntentFilter(Comm.BROADCAST_ACTION));
-
         Comm.initCentral(this);
-        //Comm.startInfiniteReceiver();
         Comm.startServer();
     }
 
@@ -70,9 +66,43 @@ public class MainApplication extends Application implements
     public void onTerminate() {
         if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         if (wifiLock != null && wifiLock.isHeld()) wifiLock.release();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
         Spotify.destroyPlayer(this);
         super.onTerminate();
+    }
+
+    static final Integer[] frequentBytes = {   192, 168,   0, 112,  10, 172,  16, 100, 101, 102 };
+    static final Character[] frequentChars = { 'm', 't', 'a', 'l', 'x', 'b', 'g', 'c', 'u', 'r' };
+    static final Character[] otherChars =
+        { 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'n', 'o', 'p', 'q', 's', 'v', 'w', 'y', 'z' };
+    static final List<Integer> frequentBytesList = Arrays.asList(frequentBytes);
+
+    public void setIp(String ip) {
+        // encode ip address into access code
+        String[] parts = ip.split(".");
+        if (parts.length != 4) {
+            Log.d("MainApp", "Received invalid ip address: " + ip);
+            return;
+        }
+
+        String code = "";
+        Integer b, index;
+        for (String part: parts) {
+            b = Integer.parseInt(part);
+
+            // here's how the mapping works:
+            // ten letters are available for frequent numbers to be encoded in a single character;
+            // the remaining 16 letters are used to encode any byte value in two characters.
+            if ((index = frequentBytesList.indexOf(b)) != -1) {
+                code += frequentChars[index];
+            } else {
+                Integer hi = b / 16;
+                code += otherChars[hi];
+                Integer lo = b % 16;
+                code += otherChars[lo];
+            }
+        }
+
+        accessCode = code;
     }
 
     @Override
@@ -114,10 +144,12 @@ public class MainApplication extends Application implements
                 break;
             case PAUSE:
                 paused = true;
+                // notify UI to update appearance of the play/pause button
                 LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(PAUSE));
                 break;
             case PLAY:
                 paused = false;
+                // notify UI to update appearance of the play/pause button
                 LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(PLAY));
                 break;
         }
@@ -127,24 +159,6 @@ public class MainApplication extends Application implements
     public void onPlaybackError(ErrorType errorType, String s) {
 
     }
-
-    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
-            Message msg = Comm.parse(intent.getStringExtra(Comm.DATA));
-            Log.d("Main", "Incoming message with kind " + msg.kind);
-            if (msg.kind.equals("wish-list")) {
-                wishes.put(msg.sender, msg.wishList);
-                updateNext();
-            } else if (msg.kind.equals("hello")) {
-                Message resp = Message.nowPlaying(currentSong);
-                resp.kind = "welcome";
-                resp.recipient = msg.sender;
-                Comm.send(resp);
-            }
-        }
-    };
 
     public static final String UPDATE_LIST = "com.fzoid.partify.UPDATE_LIST";
     public static final String UPDATE_SONG = "com.fzoid.partify.UPDATE_SONG";
@@ -158,29 +172,36 @@ public class MainApplication extends Application implements
         }
 
         currentSong = upNext.remove(0);
+
+        // remember this one in the history log
         played.add(currentSong);
+        lastWishesUsers.add(currentSong.wisher);
+
+        // remove this song from the list of any user that requested it
         for (List<Wish> userWishes : wishes.values()) {
             userWishes.remove(currentSong);
         }
+
         updateNext();
 
+        // start the playback, finally!
         player.play(currentSong.trackUri);
-
-        Comm.send(Message.nowPlaying(currentSong));
-
-        lastWishesUsers.add(currentSong.wisher);
     }
 
     public void updateNext() {
 
+        // first, gather a list of all users that are known to the system in any way
+        // these may be users that sent song requests ...
         List<String> candidates = new ArrayList<>();
         for (int i = lastWishesUsers.size(); i > 0; i--) {
             String user = lastWishesUsers.get(i-1);
             if (!candidates.contains(user)) {
+                // the earlier a user appears in the "recently placed" list, the later a wish by
+                // this user should be chosen again, so this list grows to the left
                 candidates.add(0, user);
             }
         }
-
+        // ... and also users that only sent some favourite songs
         for (String key : wishes.keySet()) {
             wishes.get(key).remove(currentSong);
             if (wishes.get(key).isEmpty()) {
@@ -190,7 +211,10 @@ public class MainApplication extends Application implements
             }
         }
 
+        // make a fresh start ...
         upNext.clear();
+        // ... and cyclically chose the most current wishes, in the order that was just determined.
+        // add up to three wishes by each user to the queue.
         for (int i = 0; i < 3; i++) {
             for (String user : candidates) {
                 if (wishes.get(user) != null && wishes.get(user).size() > i) {
@@ -198,13 +222,17 @@ public class MainApplication extends Application implements
                 }
             }
         }
+
+        // sort the list such that actual requests are preferred over favourite selections
         Collections.sort(upNext);
+
         // notify UI to update list
         LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(UPDATE_LIST));
     }
 
     public void chooseFromFavourites() {
 
+        // again, build a list of qualifying users first
         List<String> candidates = new ArrayList<>();
         for (int i = lastWishesUsers.size(); i > 0; i--) {
             String user = lastWishesUsers.get(i-1);
@@ -222,7 +250,9 @@ public class MainApplication extends Application implements
             }
         }
 
+        // for each user, add at most one favourite song to the playlist
         for (String user : candidates) {
+            // first, determine whether there are favourite songs that have not yet been played
             List<Wish> favCandidates = new ArrayList<>();
             List<Wish> playedFavs = new ArrayList<>();
             for (Wish fav: favourites.get(user)) {
@@ -235,18 +265,21 @@ public class MainApplication extends Application implements
 
             if (favCandidates.isEmpty()) {
                 if (!playedFavs.isEmpty()) {
+                    // if there are none, choose any favourite song from this user's list
                     int randomNum = new Random().nextInt(playedFavs.size());
                     upNext.add(playedFavs.get(randomNum));
                 }
             } else {
+                // otherwise, choose a favourite song that we haven't heard tonight
                 int randomNum = new Random().nextInt(favCandidates.size());
                 upNext.add(favCandidates.get(randomNum));
             }
         }
 
+        // hopefully, at least some songs have been added at this point, otherwise ...
         if (upNext.isEmpty()) {
+            // oh no ...
             upNext.add(Wish.THE_LAZY_SONG);
-            return;
         }
 
         // notify UI to update list

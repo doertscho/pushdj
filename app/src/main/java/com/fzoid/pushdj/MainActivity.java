@@ -30,6 +30,8 @@ import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.Player;
+import com.spotify.sdk.android.player.PlayerState;
+import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
 
 import java.io.IOException;
@@ -56,10 +58,7 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
     private TextView titleView, artistView, wisherView;
     private ImageButton playPauseButton, skipButton;
     private ImageView coverView;
-
     private SeekBar seekBar;
-
-    private ListView upNextList;
     private UpNextListAdapter upNextAdapter;
 
     private SongSearchDialog ssd;
@@ -70,36 +69,41 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         super.onDestroy();
     }
 
-
-    private static final int REQUEST_CODE = 1337;
-
     public MainApplication app() {
         return (MainApplication) getApplicationContext();
     }
+
+    private static final int REQUEST_CODE = 1337;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initUI();
 
+        // set up broadcast receiver to be informed about updates in the application state
         IntentFilter filter = new IntentFilter(MainApplication.UPDATE_LIST);
         filter.addAction(MainApplication.UPDATE_SONG);
         filter.addAction(MainApplication.PAUSE);
         filter.addAction(MainApplication.PLAY);
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, filter);
 
+        // check whether this is the very first time the activity is instantiated; this is
+        // necessary because onCreate is re-called on many occasions, for example after each
+        // orientation change
         if (app().needsInitialization) {
-
+            // if it is, initiate the Spotify login dialog
             AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(
                     CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
             builder.setScopes(new String[]{"playlist-modify-private", "streaming"});
             AuthenticationRequest request = builder.build();
-
             Log.d("Main", "Trying to log in");
             AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
 
+            // ... and remember we don't have to do this again
             app().needsInitialization = false;
         } else {
+            // otherwise, just do the initialization of the UI elements. on the first startup,
+            // these methods are called after the Spotify login is complete.
             initializeButtons();
             initializeSeekBar();
         }
@@ -120,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         coverView = (ImageView) findViewById(R.id.coverView);
 
         upNextAdapter = new UpNextListAdapter();
-        upNextList = (ListView) findViewById(R.id.upNextList);
+        ListView upNextList = (ListView) findViewById(R.id.upNextList);
         upNextList.setAdapter(upNextAdapter);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -159,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         super.onActivityResult(requestCode, resultCode, intent);
 
         Log.d("Main", "Received a response from log in.");
-        // Check if result comes from the correct activity
+        // check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             Log.d("Main", "Log in error: " + response.getError());
@@ -212,25 +216,26 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         }
 
         app().seekBarUpdater = new Thread(new Runnable() {
-            private Date lastCheck = new Date();
             @Override
             public void run() {
                 try {
                     while (true) {
                         Thread.sleep(1000);
-                        Date newDate = new Date();
-                        long delta = newDate.getTime() - lastCheck.getTime();
-                        lastCheck = newDate;
                         if (!app().paused) {
-                            app().trackPlayed += delta;
-                            final double perc =
-                                    ((double) app().trackPlayed) / ((double) (app().trackDuration + 1));
-                            seekBar.post(new Runnable() {
+                            app().player.getPlayerState(new PlayerStateCallback() {
                                 @Override
-                                public void run() {
-                                    int max = seekBar.getMax();
-                                    seekBar.setProgress(
-                                            Math.min(max, (int) (perc * (double) max)));
+                                public void onPlayerState(PlayerState playerState) {
+                                    app().trackPlayed += playerState.positionInMs;
+                                    final double perc = ((double) app().trackPlayed) /
+                                            ((double) (app().trackDuration + 1));
+                                    seekBar.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            int max = seekBar.getMax();
+                                            seekBar.setProgress(
+                                                    Math.min(max, (int) (perc * (double) max)));
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -245,6 +250,8 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // this one should only fire if the change was caused by an actual touch event
+                // and not be the seek bar updater thread
                 if (fromUser) {
                     double perc = (double) progress / (double) seekBar.getMax();
                     app().trackPlayed = (long) (perc * (double) app().trackDuration);
@@ -253,12 +260,10 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) { }
         });
     }
 
@@ -266,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
         Comm.spotify.getMe(new Callback<UserPrivate>() {
             @Override
             public void success(UserPrivate userPrivate, Response response) {
-                app().country = userPrivate.country;
+                app().market = userPrivate.country;
             }
 
             @Override
@@ -278,24 +283,8 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     public void updateUI() {
@@ -436,29 +425,5 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
 
             return vi;
         }
-    } /*
-
-    class WaitForWishesTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                Log.e("WFWTask", "Sleep interrupted.", e);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            if (app().upNext.isEmpty()) {
-                Log.d("WFWTask", "No one answered .. :(");
-                Log.d("WFWTask", "Time to play The Lazy Song.");
-                app().upNext.add(Wish.THE_LAZY_SONG);
-            }
-            nextTrack();
-        }
-    } */
+    }
 }
