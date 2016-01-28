@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements SongSearchDialog.
                             app().player.getPlayerState(new PlayerStateCallback() {
                                 @Override
                                 public void onPlayerState(PlayerState playerState) {
-                                    app().trackPlayed += playerState.positionInMs;
+                                    app().trackPlayed = playerState.positionInMs;
                                     final double perc = ((double) app().trackPlayed) /
                                             ((double) (app().trackDuration + 1));
                                     seekBar.post(new Runnable() {
